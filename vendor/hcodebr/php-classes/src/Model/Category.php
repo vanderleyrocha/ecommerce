@@ -59,6 +59,53 @@ public function save()
 
 		file_put_contents($_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR."views".DIRECTORY_SEPARATOR."categories-menu.html", implode("", $html));
 	}
+
+	public function getProducts($related = true)
+	{
+		$sql = new Sql();
+		if ($related)
+		{
+			return $sql->select(
+				"select * from tb_products a
+				where a.idproduct in 
+				(select b.idproduct from tb_productscategories b where b.idcategory = :idcategory)",
+				[":idcategory"=>$this->getidcategory()]
+			);
+		} else {
+			return $sql->select(
+				"select * from tb_products a
+				where a.idproduct not in 
+				(select b.idproduct from tb_productscategories b where b.idcategory = :idcategory)",
+				[":idcategory"=>$this->getidcategory()]
+			);
+		}
+	}
+
+	public function addProduct($idproduct)
+	{
+		$sql = new Sql();
+		$sql->query(
+			"
+				INSERT INTO tb_productscategories(idcategory, idproduct)
+				VALUES (:idcategory, :idproduct)
+			",
+			array(
+				":idcategory"=>$this->getidcategory(),
+				":idproduct"=>$idproduct
+			)
+		);
+	}
+
+	public function removeProduct($idproduct)
+	{
+		$sql = new Sql();
+		$sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AND idproduct = :idproduct",
+			array(
+				":idcategory"=>$this->getidcategory(),
+				":idproduct"=>$idproduct
+			)
+		);
+	}
 }
 
  ?>
