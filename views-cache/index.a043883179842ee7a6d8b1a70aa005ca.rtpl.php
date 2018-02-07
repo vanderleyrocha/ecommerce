@@ -1,25 +1,4 @@
 <?php if(!class_exists('Rain\Tpl')){exit;}?>  
-    <div class="mainmenu-area">
-        <div class="container">
-            <div class="row">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div> 
-                <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#">Produtos</a></li>
-                        <li><a href="/cart">Carrinho</a></li>
-                    </ul>
-                </div>  
-            </div>
-        </div>
-    </div> <!-- End mainmenu area -->
     
     <div class="slider-area">
         	<!-- Slider -->
@@ -109,12 +88,13 @@
                         <div class="product-carousel">
 
                             <?php $counter1=-1;  if( isset($products) && ( is_array($products) || $products instanceof Traversable ) && sizeof($products) ) foreach( $products as $key1 => $value1 ){ $counter1++; ?>
+
                             <div class="single-product">
                                 <div class="product-f-image">
                                     <img src="<?php echo htmlspecialchars( $value1["desphoto"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" alt="">
                                     <div class="product-hover">
-                                        <a href="#" class="add-to-cart-link"><i class="fa fa-shopping-cart"></i>Comprar</a>
-                                        <a href="/products/<?php echo htmlspecialchars( $value1["desurl"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" class="view-details-link"><i class="fa fa-link"></i> Ver detalhes</a>
+                                        <a href="/cart/<?php echo htmlspecialchars( $value1["idproduct"], ENT_COMPAT, 'UTF-8', FALSE ); ?>/add" class="add-to-cart-link"><i class="fa fa-shopping-cart"></i>Comprar - <?php echo htmlspecialchars( $value1["idproduct"], ENT_COMPAT, 'UTF-8', FALSE ); ?></a>
+                                        <a href="/product/<?php echo htmlspecialchars( $value1["desurl"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" class="view-details-link"><i class="fa fa-link"></i> Ver detalhes</a>
                                     </div>
                                 </div>
                                 
@@ -125,6 +105,7 @@
                                 </div> 
                             </div>
                             <?php } ?>
+
 
                         </div>
                     </div>

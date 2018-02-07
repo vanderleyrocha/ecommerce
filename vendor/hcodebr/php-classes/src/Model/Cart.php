@@ -3,19 +3,30 @@
 namespace Hcode\Model;
 use \Hcode\DB\Sql;
 use \Hcode\Model;
+use \Hcode\Model\User;
 
 class Cart extends Model 
 {
 	const SESSION = "Cart";
 
+
 	public static function getFromSession()
 	{
+		//echo "SESSION:<br>";
+		//print_r($_SESSION[Cart::SESSION]);
+		//exit;
 		$cart = new Cart();
 		if (isset($_SESSION[Cart::SESSION]) && ((int)$_SESSION[Cart::SESSION]["idcart"] > 0))
 		{
 			$cart->get((int)$_SESSION[Cart::SESSION]["idcart"]);
+			//echo "Cart Session:<br>";
+			//var_dump($cart);
 		} else {
 			$cart->getFromSessionID();
+
+			//echo "Cart SessionID:<br>";
+			//var_dump($cart);
+
 			if (!(int)$cart->getidcart() > 0)
 			{
 				$data["dessessionid"] = session_id();
@@ -27,8 +38,12 @@ class Cart extends Model
 				$cart->setData($data);
 				$cart->save();
 				$cart->setToSession();
+				//echo "Cart SessionID + User:<br>";
+				//var_dump($cart);
 			}
 		}
+		//exit;
+		return $cart;
 	}
 
 
@@ -40,7 +55,7 @@ class Cart extends Model
 	public function getFromSessionID()
 	{
 		$sql = new Sql();
-		$results = $sql->select("SELECT * FROM tb_cart WHERE dessessionid = :dessessionid",
+		$results = $sql->select("SELECT * FROM tb_carts WHERE dessessionid = :dessessionid",
 			array(":dessessionid"=>session_id())
 		);
 
@@ -52,7 +67,7 @@ class Cart extends Model
 	public function get(int $idcart)
 	{
 		$sql = new Sql();
-		$results = $sql->select("SELECT * FROM tb_cart WHERE idcart = :idcart",
+		$results = $sql->select("SELECT * FROM tb_carts WHERE idcart = :idcart",
 			array(":idcart"=>$idcart)
 		);
 
@@ -74,8 +89,65 @@ class Cart extends Model
 				":nrdays"=>$this->getnrdays()
 			)
 		);
+		//echo "Save cart:<br>";
+		//var_dump($results[0]);
+		//exit;
 		$this->setData($results[0]);
 	}
+
+	public function addProduct(Product $product)
+	{
+		$sql = new Sql();
+		$sql->query("INSERT INTO tb_cartsproducts (idcart, idproduct) VALUES (:idcart, :idproduct)",
+		[
+			":idcart"=>$this->getidcart(),
+			":idproduct"=>$product->getidproduct()
+		]);
+	}
+
+	public function removeProduct(Product $product, $all = false)
+	{
+		$sql = new Sql();
+		if ($all)
+		{
+			$sql->query("UPDATE tb_cartsproducts SET dtremoved = NOW() 
+				WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL",
+				[
+					":idcart"=>$this->getidcart(),
+					":idproduct"=>$product->getidproduct()
+				]
+			);
+		} 
+		else 
+		{
+			$sql->query("UPDATE tb_cartsproducts SET dtremoved = NOW() 
+				WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL LIMIT 1",
+				[
+					":idcart"=>$this->getidcart(),
+					":idproduct"=>$product->getidproduct()
+				]
+			);			
+		}
+	}
+
+	public function getProducts()
+	{
+		$sql = new Sql();
+		$results = $sql->select("
+			SELECT b.idproduct, b.desproduct, b.vlprice, b.vlwidth, b.vlheight, b.vllength, b.vlweight, b.desurl, 
+				COUNT(*) AS nrqtd, SUM(b.vlprice) AS vltotal
+			FROM tb_cartsproducts a 
+			INNER JOIN tb_products b USING(idproduct) 
+			WHERE a.idcart = :idcart AND a.dtremoved IS NULL 
+			GROUP BY b.idproduct, b.desproduct, b.vlprice, b.vlwidth, b.vlheight, b.vllength, b.vlweight, b.desurl
+			ORDER BY b.desproduct",
+			array(":idcart"=>$this->getidcart())
+		);
+
+		return Product::checkList($results);
+	}
+
+
 
 }
 
