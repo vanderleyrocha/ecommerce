@@ -53,24 +53,22 @@ $app->get('/product/:desurl', function($desurl)
 $app->get('/cart', function() 
 {  
 	$cart = Cart::getFromSession(); 
-	
-	//echo "<br><br><br>Carrinho:" . $cart->getidcart();
-	//exit;
 
 	$page = new Page();
 	$page->setTpl("cart", [
 		"cart"=>$cart->getValues(),
-		"products"=>$cart->getProducts()
+		"products"=>$cart->getProducts(),
+		"error"=>Cart::getMsgError()
 	]);
 });
 
 
 $app->post('/cart/freight', function() 
-{   
-	$page = new Page();
-	echo "carrinho...";
+{
+	$cart = Cart::getFromSession();
+	$cart->setFreight($_POST["zipcode"]);
+	header("Location: /cart");
 	exit;
-	$page->setTpl("cart", []);
 });
 
 $app->get('/checkout', function() 
@@ -88,13 +86,6 @@ $app->get('/cart/:idproduct/add', function($idproduct)
 	$product->get((int)$idproduct);
 	$cart = Cart::getFromSession();
 	$qtd = (isset($_GET["qtd"])) ? (int)$_GET["qtd"] : 1;
-	//
-	//echo "<br><br>Produto:<br>";
-	//print_r($product);
-	//echo "<br><br>Carrinho:<br>";
-	//print_r($cart);
-	//echo "<br><br>Quantidade: $qtd<br>";
-	//exit;
 
 	for ($i=0; $i < $qtd; $i++) { 
 		$cart->addProduct($product);
