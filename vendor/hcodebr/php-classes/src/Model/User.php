@@ -10,6 +10,7 @@ class User extends Model {
 	const SESSION = "User";
 	const SECRET = "Pz17_qmz_04fty30";
 	const SESSION_ERROR = "UserError";
+	const SESSION_SUCCESS = "UserSuccess";
 	const ERROR_REGISTER = "UserErrorRegister";
 
 
@@ -264,6 +265,29 @@ class User extends Model {
 		);
 	}
 
+
+	// Manipulação das mensagens de sucesso
+	public static function setMsgSuccess($msg)
+	{
+		$_SESSION[User::SESSION_SUCCESS] =  $msg;
+	}
+
+
+	public static function getMsgSuccess()
+	{
+		$msg = (isset($_SESSION[User::SESSION_SUCCESS])) ? $_SESSION[User::SESSION_SUCCESS] : "";
+		User::clearMsgSuccess();
+		return $msg;
+	}
+
+
+	public static function clearMsgSuccess()
+	{
+		$_SESSION[User::SESSION_SUCCESS] =  NULL;
+	}
+
+
+	// Manipulação das mensagens de erro
 	public static function setMsgError($msg)
 	{
 		$_SESSION[User::SESSION_ERROR] =  $msg;

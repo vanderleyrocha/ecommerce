@@ -254,11 +254,19 @@ class Cart extends Model
 
 	public function getValues()
 	{
-		$this->getCalculateTotal();
-		return parent::getValues();
+		$this->calculateTotal();
+		$values = parent::getValues();
+
+		if (!isset($values["deszipcode"])) $values["deszipcode"] = "";
+		if (!isset($values["vlfreight"])) $values["vlfreight"] = 0.0;
+		if (!isset($values["nrdays"])) $values["nrdays"] = 0;
+		
+		//var_dump($values);
+		//exit;		
+		return $values;
 	}
 
-	public function getCalculateTotal()
+	public function calculateTotal()
 	{
 		$this->updateFreight();
 		$totals = $this->getProductsTotals();

@@ -215,9 +215,7 @@ $app->post('/register', function()
 });
 
 
-
 // Rotas do Forgot
-
 
 $app->get('/forgot', function() 
 {   
@@ -266,5 +264,67 @@ $app->post('/forgot/reset', function()
 
 });
 
+
+//Rotas do Profile
+
+$app->get('/profile', function() 
+{ 
+	User::verifyLogin(false); 
+	$user = User::getFromSession();
+	$page = new Page();
+	$page->setTpl("profile", [
+		"user"=>$user->getValues(),
+		"profileMsg"=>User::getMsgSuccess(),
+		"profileError"=>User::getMsgError();
+	]);
+});
+
+$app->post('/profile', function() 
+{ 
+	User::verifyLogin(false);
+
+	if (!isset($_POST["desperson"]) || ($_POST["desperson"] == ""))
+	{
+		User::setError("Informe seu nome.");	
+		header("Location: /profile");
+		exit;	
+	}
+	if (!isset($_POST["desemail"]) || ($_POST["desemail"] == ""))
+	{
+		User::setError("Informe seu email.");
+		header("Location: /profile");
+		exit;		
+	}
+
+	$user = User::getFromSession();
+
+	if ($_POST["desemail"] !== $user->getdesemail())
+	{
+		if (User::LoginExists($_POST["desemail"]))
+		{
+			User::setError("Esse endereço de e-mail pertence a outro usuário")
+		}
+
+	}
+	 
+
+	//var_dump($_POST["despassword"]);
+	//echo "<br><br>";
+	//var_dump($user->getdespassword());
+	//exit;
+
+	// Para evitar command injection
+	$_POST["inadmin"] = $user->getinadmin();
+	$_POST["despassword"] = $user->getdespassword();
+	$_POST["deslogin"] = $_POST["desemail"];
+
+	$user->setData($_POST);
+	$user->update();
+
+	User::getMsgSuccess("Dados alterados com sucesso!");
+
+	header("Location: /profile");
+	exit;
+});
 
 ?>

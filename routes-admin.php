@@ -6,7 +6,23 @@ use \Hcode\Model\User;
 
 $app->get('/admin', function() 
 { 
-	User::verifyLogin();  
+	/* Forçar o cadastro de um usuário 
+	if (!User::loginExists("admin"))
+	{
+		$user = new User();
+		$data = [
+			"desperson"=>"Vanderley Rocha",
+			"desemail"=>"vanderleyrocha7@gmail.com",
+			"nrphone"=>"068999561890",
+			"deslogin"=>"admin",
+			"despassword"=>"123",
+			"inadmin"=>"1"
+		];
+		$user->setData($data);
+		$user->save();			
+	}
+	*/
+	User::verifyLogin(); 	
 	$page = new PageAdmin();
 	$page->setTpl("index");
 });
