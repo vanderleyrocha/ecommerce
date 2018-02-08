@@ -120,6 +120,7 @@ class User extends Model {
 			":nrphone"=>$this->getnrphone(),
 			":inadmin"=>$this->getinadmin()
 		));
+		
 		$this->setData($results[0]);
 	}
 
@@ -290,7 +291,7 @@ class User extends Model {
 
 	public static function getErrorRegister()
 	{
-		$msg = (isset($_SESSION[User::ERROR_REGISTER]) && ($_SESSION[User::ERROR_REGISTER])) ? $_SESSION[User::SESSION_ERROR] : "";
+		$msg = (isset($_SESSION[User::ERROR_REGISTER]) && ($_SESSION[User::ERROR_REGISTER])) ? $_SESSION[User::ERROR_REGISTER] : "";
 		User::clearErrorRegister();
 		return $msg;
 	}
@@ -302,7 +303,7 @@ class User extends Model {
 	}
 
 
-	public static function checkLoginExists($login)
+	public static function LoginExists($login)
 	{
 		$sql = new Sql();
 		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", array(
@@ -314,7 +315,7 @@ class User extends Model {
 
 	public static function getPasswordHash($password)
 	{
-		$results = password_hash($password, PASSWORD_DEFAULT, ["cost"=>12]);
+		return password_hash($password, PASSWORD_DEFAULT, ["cost"=>12]);
 	}
 
 

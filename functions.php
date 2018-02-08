@@ -9,7 +9,7 @@ function formatPrice(float $vlprice)
 
 function checkLogin($inadmin = true)
 {
-	return User::checkLogin();
+	return User::checkLogin($inadmin);
 }
 
 function getUserName()
