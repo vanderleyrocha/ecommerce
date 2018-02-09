@@ -67,7 +67,7 @@ $app->get('/cart', function()
 $app->post('/cart/freight', function() 
 {
 	$cart = Cart::getFromSession();
-	$cart->setFreight($_POST["zipcode"]);
+	$cart->setFreight($_POST["deszipcode"]);
 	header("Location: /cart");
 	exit;
 });
@@ -116,15 +116,72 @@ $app->get('/cart/:product/remove', function($idproduct)
 $app->get('/checkout', function() 
 { 
 	User::verifyLogin(false); 
+
+	$address = new Address();
 	$cart = Cart::getFromSession();
-	$address = new Address(); 
+
+	$user = User::getFromSession();
+	
+	if (!$address->get($user->getidperson()))
+	{
+		if (isset($_GET["deszipcode"]))
+		{
+			$address->loadFromCEP($_GET["deszipcode"]);
+			$cart->setdeszipcode($_GET["deszipcode"]);
+			$cart->save();
+			$cart->calculateTotal();
+		}
+			
+	}
+
 	$page = new Page();
-	$page->setTpl("Checkout", [
+	$page->setTpl("checkout", [
 		"cart"=>$cart->getValues(),
-		"address"=>["desaddress"=>"Rua A", "descomplement"=>"", "desdistrict"=>"Manoel Julião", "descity"=>"Rio Branco", "desstate"=>"Acre", "descountry"=>"BR"]
-		//"address"=>$address->getValues()
+		"address"=>$address->getValues(),
+		"products"=>$cart->getProducts(),
+		"error"=>Address::getMsgError()
 	]);
 });
+
+
+
+$app->post('/checkout', function() 
+{ 
+	User::verifyLogin(false);
+
+	$user = new User();
+	$user = User::getFromSession();
+
+	$_POST["idperson"] = $user->getidperson();
+
+	$address = new Address(); 
+	$address->setData($_POST);
+	$model = Address::getModel();
+	$fields = $model["fields"];
+	$msgError = $model["msgError"];
+
+	foreach ($fields as $value) 
+	{
+		if (!isset($_POST[$value]) || $_POST[$value] === "")
+		{
+			$cart = Cart::getFromSession();
+			$page = new Page();
+			$page->setTpl("checkout", [
+				"cart"=>$cart->getValues(),
+				"address"=>$address->getValues(),
+				"products"=>$cart->getProducts(),
+				"error"=>$msgError[$value]
+			]);
+			exit;
+		}
+	}
+
+	$address->save();
+
+	header("Location: /order");
+	exit;
+});
+
 
 
 $app->get('/login', function() 
@@ -275,7 +332,7 @@ $app->get('/profile', function()
 	$page->setTpl("profile", [
 		"user"=>$user->getValues(),
 		"profileMsg"=>User::getMsgSuccess(),
-		"profileError"=>User::getMsgError();
+		"profileError"=>User::getMsgError()
 	]);
 });
 
@@ -302,7 +359,7 @@ $app->post('/profile', function()
 	{
 		if (User::LoginExists($_POST["desemail"]))
 		{
-			User::setError("Esse endereço de e-mail pertence a outro usuário")
+			User::setError("Esse endereço de e-mail pertence a outro usuário");
 		}
 
 	}
