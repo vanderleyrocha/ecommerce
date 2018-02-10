@@ -25,8 +25,13 @@ class Cart extends Model
 		}
 		if (!$hasCart)
 		{
-			$cart-setdessessionid(session_id());
+			$cart->setdessessionid(session_id());
 			$cart->setFonte("Novo");
+		}
+		if (User::checkLogin(false))
+		{
+			$user = User::getFromSession();
+			$cart->setiduser($user->getiduser());
 		}
 		$cart->save();
 		$cart->setToSession();
@@ -42,7 +47,7 @@ class Cart extends Model
 	{
 		if (isset($_SESSION[Cart::SESSION]) && ((int)$_SESSION[Cart::SESSION]["idcart"] > 0))
 		{
-			$this->setData($_SESSION[Cart::SESSION]);
+			$this->get((int)$_SESSION[Cart::SESSION]["idcart"]);
 		}
 		else
 		{

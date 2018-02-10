@@ -73,7 +73,7 @@ class Sql {
 
 		$row = $stmt->fetch(\PDO::FETCH_NUM);
 		
-		return $row[0];
+		return (($row[0] === NULL) ? "" : $row[0]);
 
 	}
 

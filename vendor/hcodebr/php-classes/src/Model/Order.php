@@ -10,7 +10,7 @@ class Order extends Model
 	public function save()
 	{
 		$sql = new Sql();
-		if (!(int)$this->getidorder() > 0)
+		if ((int)$this->getidcart() > 0)
 		{
 			$this->setidorder($sql->getValue("SELECT idorder FROM tb_orders where idcart = :idcart", [":idcart"=>$this->getidcart()]));
 		}
@@ -53,6 +53,37 @@ class Order extends Model
 		} else {
 			return false;
 		}
+	}
+
+	public static function listAll()
+	{
+		$sql = new Sql();
+		$results = $sql->select("
+			SELECT * 
+			FROM tb_orders a
+			INNER JOIN tb_ordersstatus b USING(idstatus)
+			INNER JOIN tb_carts c USING(idcart)
+			INNER JOIN tb_users d ON d.iduser = a.iduser
+			INNER JOIN tb_addresses e USING(idaddress)
+			INNER JOIN tb_persons f ON f.idperson = d.idperson
+			ORDER BY a.dtregister DESC
+		");
+
+		return $results;
+	}
+
+
+	public static function listStatus()
+	{
+		$sql = new Sql();
+		$results = $sql->select("SELECT * FROM tb_ordersstatus ORDER BY idstatus");
+		return $results;
+	}
+
+	public function delete()
+	{
+		$sql = new Sql();
+		$sql->query("DELETE FROM tb_orders WHERE idorder = :idorder", [":idorder"=>$this->getidorder()]);
 	}
 
 }

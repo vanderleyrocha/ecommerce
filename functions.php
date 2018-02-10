@@ -27,4 +27,10 @@ function getCartTotals($field)
 	return $totals[$field];
 }
 
+function getCartId()
+{
+	$cart = Cart::getCart();
+	return $cart->getidcart()."- ".$cart->getFonte();
+}
+
 ?>

@@ -93,7 +93,12 @@
                 
                 <div class="col-sm-6">
                     <div class="shopping-item">
-                        <a href="/cart">Carrinho - <span class="cart-amunt">R$ <?php echo formatPrice(getCartTotals('vlprice')); ?></span> <i class="fa fa-shopping-cart"></i> <span class="product-count"><?php echo getCartTotals('nrqtd'); ?></span></a>
+                        <a href="/cart">
+                            Carrinho - 
+                            <span class="cart-amunt">R$ <?php echo formatPrice(getCartTotals('vlprice')); ?></span> 
+                            <i class="fa fa-shopping-cart"></i> 
+                            <span class="product-count"><?php echo getCartTotals('nrqtd'); ?></span>
+                        </a>
                     </div>
                 </div>
             </div>

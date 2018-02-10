@@ -53,7 +53,6 @@ $app->post('/checkout', function()
 	$cart = Cart::getCart();
 
 	$_POST["idperson"] = $user->getidperson();
-
 	$address = new Address(); 
 	$address->setData($_POST);
 	$model = Address::getModel();
@@ -77,6 +76,8 @@ $app->post('/checkout', function()
 
 	$address->save();
 
+	//var_dump($address); exit;
+
 	$cart->calculateTotal();
 	$data = [
 		"idcart"=>$cart->getidcart(),
@@ -86,13 +87,27 @@ $app->post('/checkout', function()
 		"vltotal"=>$cart->getvltotal()
 	];
 
+	//var_dump($data); exit;
+
 	$order = new Order();
 	$order->setData($data);
 
 	$order->save();
 
-	header("Location: /order/".$order->getidorder());
-	exit;
+	if (!(int)$order->getidorder() > 0) 
+	{
+		$page = new Page();
+		$page->setTpl("checkout", [
+			"cart"=>$cart->getValues(),
+			"address"=>$address->getValues(),
+			"products"=>$cart->getProducts(),
+			"error"=>"Não for possível gravar os dados do pedido"
+		]);
+	} else {
+		header("Location: /order/".$order->getidorder());
+		exit;
+	}
+	
 });
 //Fim das rotas (GET e POST) para finalização da compra
 

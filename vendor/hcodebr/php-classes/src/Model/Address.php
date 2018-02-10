@@ -56,13 +56,23 @@ class Address extends Model
 
 	public function save()
 	{
-		//var_dump($this);
-		//exit;
+
 		$sql = new Sql();
-		if (!(int)$this->getidaddress() > 0)
+	
+		if ((int)$this->getidperson() > 0)
 		{
-			$this->setidaddress($sql->getValue("SELECT idaddress FROM tb_addresses where idperson = :idperson", [":idperson"=>$this->getidperson()]));
+			$zipcode = $sql->getValue("SELECT deszipcode FROM tb_addresses where idperson = :idperson", [":idperson"=>$this->getidperson()]);
+			if ($zipcode == $this->getdeszipcode())
+			{
+				$this->setidaddress($sql->getValue("SELECT idaddress FROM tb_addresses where idperson = :idperson", [":idperson"=>$this->getidperson()]));
+			}
 		}
+
+		//echo "---------------<br>";
+		//echo "zipcode: " . $zipcode;
+		//echo "---------------<br>";
+		//var_dump($this); exit;
+
 		$results = $sql->select("
 			CALL sp_addresses_save
 			(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)
