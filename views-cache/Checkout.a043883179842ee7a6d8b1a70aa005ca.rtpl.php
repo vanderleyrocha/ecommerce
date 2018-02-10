@@ -43,7 +43,7 @@
 											<input type="text" value='<?php if( isset($address["desaddress"]) ){ ?><?php echo htmlspecialchars( $address["desaddress"], ENT_COMPAT, 'UTF-8', FALSE ); ?><?php } ?>' placeholder="Logradouro, número e bairro" id="billing_address_1" name="desaddress" class="input-text ">
 										</p>
 										<p id="billing_address_2_field" class="form-row form-row-wide address-field">
-											<input type="text" value='<?php if( isset($address["descomplement"]) ){ ?><?php echo htmlspecialchars( $address["descomplement"], ENT_COMPAT, 'UTF-8', FALSE ); ?><?php } ?>' placeholder="Complemento (opcional)" id="billing_address_2" name="descomplement" class="input-text ">
+											<input type="text" value='<?php if( isset($address["descomplement"]) ){ ?><?php echo htmlspecialchars( $address["descomplement"], ENT_COMPAT, 'UTF-8', FALSE ); ?><?php } ?>' placeholder="Complemento" id="billing_address_2" name="descomplement" class="input-text ">
                                         </p>
                                         <p id="billing_district_field" class="form-row form-row-wide address-field validate-required" data-o_class="form-row form-row-wide address-field validate-required">
 											<label class="" for="billing_district">Bairro <abbr title="required" class="required">*</abbr>

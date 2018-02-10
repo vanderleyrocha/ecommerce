@@ -57,13 +57,23 @@ class Sql {
 		$stmt = $this->conn->prepare($rawQuery);
 
 		$this->setParams($stmt, $params);
-		//var_dump($stmt);
-		//echo "<br><br><br>";
-		//var_dump($params);
-		//exit;
 		$stmt->execute();
 
 		return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+	}
+
+	public function getValue($rawQuery, $params = array()):string
+	{
+
+		$stmt = $this->conn->prepare($rawQuery);
+
+		$this->setParams($stmt, $params);
+		$stmt->execute();
+
+		$row = $stmt->fetch(\PDO::FETCH_NUM);
+		
+		return $row[0];
 
 	}
 

@@ -15,20 +15,26 @@ class Cart extends Model
 	{
 		//echo "SESSION:<br>";
 		//print_r($_SESSION[Cart::SESSION]);
-		//exit;
+		//echo "<br><br><br>";
+		$hasCart = false;
 		$cart = new Cart();
 		if (isset($_SESSION[Cart::SESSION]) && ((int)$_SESSION[Cart::SESSION]["idcart"] > 0))
 		{
-			$cart->get((int)$_SESSION[Cart::SESSION]["idcart"]);
-			//echo "Cart Session:<br>";
-			//var_dump($cart);
-		} else {
-			$cart->getFromSessionID();
+			$hasCart = $cart->get((int)$_SESSION[Cart::SESSION]["idcart"]);
+			if (!$hasCart)
+			{
+				if (checkLogin(false))
+				{
+					$hasCart = $cart->get((int)$_SESSION[User::SESSION]["iduser"]);
+				}
+			} 
+		} 
 
-			//echo "Cart SessionID:<br>";
-			//var_dump($cart);
+		if (!$hasCart) 
+		{
+			$hasCart = $cart->getFromSessionID();
 
-			if (!(int)$cart->getidcart() > 0)
+			if (!$hasCart)
 			{
 				$data["dessessionid"] = session_id();
 				if (User::checkLogin(false)) 
@@ -39,10 +45,11 @@ class Cart extends Model
 				$cart->setData($data);
 				$cart->save();
 				$cart->setToSession();
-				//echo "Cart SessionID + User:<br>";
-				//var_dump($cart);
 			}
 		}
+		//echo "Cart SessionID + User:<br>";
+		//var_dump($cart);
+		//echo "<br><br><br>";
 		//exit;
 		return $cart;
 	}
@@ -61,7 +68,12 @@ class Cart extends Model
 		);
 
 		if (count($results) > 0)
+		{
 			$this->setData($results[0]);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 
@@ -73,7 +85,12 @@ class Cart extends Model
 		);
 
 		if (count($results) > 0)
+		{
 			$this->setData($results[0]);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 

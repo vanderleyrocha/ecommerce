@@ -59,6 +59,10 @@ class Address extends Model
 		//var_dump($this);
 		//exit;
 		$sql = new Sql();
+		if (!(int)$this->getidaddress() > 0)
+		{
+			$this->setidaddress($sql->getValue("SELECT idaddress FROM tb_addresses where idperson = :idperson", [":idperson"=>$this->getidperson()]));
+		}
 		$results = $sql->select("
 			CALL sp_addresses_save
 			(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)

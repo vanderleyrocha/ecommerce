@@ -6,6 +6,10 @@ use \Hcode\Model\User;
 use \Hcode\Model\Category;
 use \Hcode\Model\Cart;
 use \Hcode\Model\Address;
+use \Hcode\Model\Order;
+use \Hcode\Model\OrderStatus;
+
+
 
 $app->get('/', function() 
 {   
@@ -15,6 +19,7 @@ $app->get('/', function()
 });
 
 
+// Rota para exibir produtos por categoria (Template category)
 $app->get('/category/:idcategory', function($idcategory) 
 {   
 	$page = (isset($_GET["page"])) ? (int)$_GET["page"] : 1;
@@ -37,8 +42,10 @@ $app->get('/category/:idcategory', function($idcategory)
 		)
 	);	
 });
+// Rota para exibir produtos por categoria (Template category)
 
 
+// Rota para exibir detalhes do produto (Template product-detail)
 $app->get('/product/:desurl', function($desurl) 
 {   
 	$product = new Product();
@@ -49,10 +56,13 @@ $app->get('/product/:desurl', function($desurl)
 		"categories"=>$product->getCategories()
 	]);
 });
+// Rota para exibir detalhes do produto (Template product-detail)
 
 
+//Início das rotas de gerenciamento do carrinho
 $app->get('/cart', function() 
 {  
+	echo "<h1>G E T cart</h1><br><br>";
 	$cart = Cart::getFromSession(); 
 
 	$page = new Page();
@@ -66,6 +76,7 @@ $app->get('/cart', function()
 
 $app->post('/cart/freight', function() 
 {
+	echo "<h1>P O S T frete</h1><br><br>";
 	$cart = Cart::getFromSession();
 	$cart->setFreight($_POST["deszipcode"]);
 	header("Location: /cart");
@@ -74,7 +85,8 @@ $app->post('/cart/freight', function()
 
 
 $app->get('/cart/:idproduct/add', function($idproduct) 
-{   
+{ 
+	echo "<h1>G E T add produto</h1><br><br>";  
 	$product = new Product();
 	$product->get((int)$idproduct);
 	$cart = Cart::getFromSession();
@@ -90,7 +102,8 @@ $app->get('/cart/:idproduct/add', function($idproduct)
 
 
 $app->get('/cart/:product/minus', function($idproduct) 
-{   
+{
+	echo "<h1>G E T remove 1 produto</h1><br><br>";     
 	$product = new Product();
 	$product->get((int)$idproduct);
 	$cart = Cart::getFromSession();
@@ -102,7 +115,8 @@ $app->get('/cart/:product/minus', function($idproduct)
 
 
 $app->get('/cart/:product/remove', function($idproduct) 
-{   
+{ 
+	//echo "<h1>G E T remove todos os produto</h1><br><br>";   
 	$product = new Product();
 	$product->get((int)$idproduct);
 	$cart = Cart::getFromSession();
@@ -111,11 +125,15 @@ $app->get('/cart/:product/remove', function($idproduct)
 	header("Location: /cart");
 	exit;
 });
+//fim das rotas de gerenciamento do carrinho
 
 
+//Início das rotas (GET e POST) para finalização da compra
 $app->get('/checkout', function() 
 { 
-	User::verifyLogin(false); 
+	User::verifyLogin(false);
+
+	//echo "<h1>G E T</h1><br><br>";
 
 	$address = new Address();
 	$cart = Cart::getFromSession();
@@ -124,6 +142,7 @@ $app->get('/checkout', function()
 	
 	if (!$address->get($user->getidperson()))
 	{
+		//echo "<h2>Buscando endereço pelo CEP</h2><br><br>";
 		if (isset($_GET["deszipcode"]))
 		{
 			$address->loadFromCEP($_GET["deszipcode"]);
@@ -133,6 +152,9 @@ $app->get('/checkout', function()
 		}
 			
 	}
+
+	//var_dump($address);
+	//exit;
 
 	$page = new Page();
 	$page->setTpl("checkout", [
@@ -152,6 +174,8 @@ $app->post('/checkout', function()
 	$user = new User();
 	$user = User::getFromSession();
 
+	$cart = Cart::getFromSession();
+
 	$_POST["idperson"] = $user->getidperson();
 
 	$address = new Address(); 
@@ -164,7 +188,6 @@ $app->post('/checkout', function()
 	{
 		if (!isset($_POST[$value]) || $_POST[$value] === "")
 		{
-			$cart = Cart::getFromSession();
 			$page = new Page();
 			$page->setTpl("checkout", [
 				"cart"=>$cart->getValues(),
@@ -178,12 +201,27 @@ $app->post('/checkout', function()
 
 	$address->save();
 
-	header("Location: /order");
+	$cart->calculateTotal();
+	$data = [
+		"idcart"=>$cart->getidcart(),
+		"iduser"=>$user->getiduser(),
+		"idstatus"=>OrderStatus::EM_ABERTO,
+		"idaddress"=>$address->getidaddress(),
+		"vltotal"=>$cart->getvltotal()
+	];
+
+	$order = new Order();
+	$order->setData($data);
+
+	$order->save();
+
+	header("Location: /order/".$order->getidorder());
 	exit;
 });
+//Fim das rotas (GET e POST) para finalização da compra
 
 
-
+//Início das rotas (GET, POST) de login e resistro de erro
 $app->get('/login', function() 
 { 
 	$page = new Page();
@@ -205,7 +243,7 @@ $app->post('/login', function()
 		User::setMsgError($e->getMessage());
 	}
 	
-	header("Location: /checkout");
+	header("Location: /");
 	exit;
 });
 
@@ -270,10 +308,10 @@ $app->post('/register', function()
 	exit;
 
 });
+//Fim das rotas (GET, POST) de login e resistro de erro
 
 
-// Rotas do Forgot
-
+// Início das rotas do Forgot (Esqueci a senha)
 $app->get('/forgot', function() 
 {   
 	$page = new Page();
@@ -320,10 +358,10 @@ $app->post('/forgot/reset', function()
 	$page->setTpl("forgot-reset-success");
 
 });
+// Fim das rotas do Forgot (Esqueci a senha)
 
 
-//Rotas do Profile
-
+//Início das rotas do Profile de usuário
 $app->get('/profile', function() 
 { 
 	User::verifyLogin(false); 
@@ -335,6 +373,7 @@ $app->get('/profile', function()
 		"profileError"=>User::getMsgError()
 	]);
 });
+
 
 $app->post('/profile', function() 
 { 
@@ -363,12 +402,6 @@ $app->post('/profile', function()
 		}
 
 	}
-	 
-
-	//var_dump($_POST["despassword"]);
-	//echo "<br><br>";
-	//var_dump($user->getdespassword());
-	//exit;
 
 	// Para evitar command injection
 	$_POST["inadmin"] = $user->getinadmin();
@@ -382,6 +415,93 @@ $app->post('/profile', function()
 
 	header("Location: /profile");
 	exit;
+});
+//Fim das rotas do Profile de usuário
+
+
+$app->get('/order/:idorder', function($idorder) 
+{ 
+	User::verifyLogin(false); 
+
+	$order = new Order();
+	$order->get((int)$idorder);
+	$page = new Page();
+	$page->setTpl("payment", [
+		"order"=>$order->getValues()
+	]);
+});
+
+
+$app->get('/boleto/:idorder', function($idorder) 
+{ 
+	User::verifyLogin(false); 
+
+	$order = new Order();
+	$order->get((int)$idorder);
+
+
+// DADOS DO BOLETO PARA O SEU CLIENTE
+$dias_de_prazo_para_pagamento = 10;
+$taxa_boleto = 5.00;
+$data_venc = date("d/m/Y", time() + ($dias_de_prazo_para_pagamento * 86400));  // Prazo de X dias OU informe data: "13/04/2006"; 
+$valor_cobrado = $order->getvltotal(); // Valor - REGRA: Sem pontos na milhar e tanto faz com "." ou "," ou com 1 ou 2 ou sem casa decimal
+$valor_cobrado = str_replace(",", ".",$valor_cobrado);
+$valor_boleto=number_format($valor_cobrado+$taxa_boleto, 2, ',', '');
+
+$dadosboleto["nosso_numero"] = $order->getidorder();  // Nosso numero - REGRA: Máximo de 8 caracteres!
+$dadosboleto["numero_documento"] = $order->getidorder();	// Num do pedido ou nosso numero
+$dadosboleto["data_vencimento"] = $data_venc; // Data de Vencimento do Boleto - REGRA: Formato DD/MM/AAAA
+$dadosboleto["data_documento"] = date("d/m/Y"); // Data de emissão do Boleto
+$dadosboleto["data_processamento"] = date("d/m/Y"); // Data de processamento do boleto (opcional)
+$dadosboleto["valor_boleto"] = $valor_boleto; 	// Valor do Boleto - REGRA: Com vírgula e sempre com duas casas depois da virgula
+
+// DADOS DO SEU CLIENTE
+$dadosboleto["sacado"] = $order->getdesperson();
+$dadosboleto["endereco1"] = $order->getdesaddress(). ", " .$order->getdescomplement(). "  - " .$order->getdesdistrict();
+$dadosboleto["endereco2"] = " " .$order->getdescity(). " - " .$order->getdesstate(). " - " .$order->getdeszipcode();
+
+// INFORMACOES PARA O CLIENTE
+$dadosboleto["demonstrativo1"] = "Pagamento de Compra na Loja Hcode E-commerce";
+$dadosboleto["demonstrativo2"] = "Taxa bancária - R$ 0,00";
+$dadosboleto["demonstrativo3"] = "";
+$dadosboleto["instrucoes1"] = "- Sr. Caixa, cobrar multa de 2% após o vencimento";
+$dadosboleto["instrucoes2"] = "- Receber até 10 dias após o vencimento";
+$dadosboleto["instrucoes3"] = "- Em caso de dúvidas entre em contato conosco: suporte@hcode.com.br";
+$dadosboleto["instrucoes4"] = "&nbsp; Emitido pelo sistema Projeto Loja Hcode E-commerce - www.hcode.com.br";
+
+// DADOS OPCIONAIS DE ACORDO COM O BANCO OU CLIENTE
+$dadosboleto["quantidade"] = "";
+$dadosboleto["valor_unitario"] = "";
+$dadosboleto["aceite"] = "";		
+$dadosboleto["especie"] = "R$";
+$dadosboleto["especie_doc"] = "";
+
+
+// ---------------------- DADOS FIXOS DE CONFIGURAÇÃO DO SEU BOLETO --------------- //
+
+
+// DADOS DA SUA CONTA - ITAÚ
+$dadosboleto["agencia"] = "1690"; // Num da agencia, sem digito
+$dadosboleto["conta"] = "48781";	// Num da conta, sem digito
+$dadosboleto["conta_dv"] = "2"; 	// Digito do Num da conta
+
+// DADOS PERSONALIZADOS - ITAÚ
+$dadosboleto["carteira"] = "175";  // Código da Carteira: pode ser 175, 174, 104, 109, 178, ou 157
+
+// SEUS DADOS
+$dadosboleto["identificacao"] = "Hcode Treinamentos";
+$dadosboleto["cpf_cnpj"] = "24.700.731/0001-08";
+$dadosboleto["endereco"] = "Rua Ademar Saraiva Leão, 234 - Alvarenga, 09853-120";
+$dadosboleto["cidade_uf"] = "São Bernardo do Campo - SP";
+$dadosboleto["cedente"] = "HCODE TREINAMENTOS LTDA - ME";
+
+// NÃO ALTERAR!
+$path = $_SERVER["DOCUMENT_ROOT"].DIRECTORY_SEPARATOR."res".DIRECTORY_SEPARATOR."boletophp".DIRECTORY_SEPARATOR."include".DIRECTORY_SEPARATOR;
+require_once($path."funcoes_itau.php"); 
+require_once($path."layout_itau.php");
+
+
+
 });
 
 ?>
