@@ -160,6 +160,24 @@ class User extends Model {
 	}
 
 
+	public function getOrders()
+	{
+		$sql = new Sql();
+		$results = $sql->select("
+			SELECT * 
+			FROM tb_orders a
+			INNER JOIN tb_ordersstatus b USING(idstatus)
+			INNER JOIN tb_addresses c USING(idaddress)
+			WHERE a.iduser = :iduser
+		", array(
+			":iduser"=>$this->getiduser()
+		));
+
+		return $results;
+
+
+	}
+
 	public static function getForgot($email, $inadmin = true)
 	{
 	    $sql = new Sql();
