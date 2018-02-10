@@ -16,7 +16,7 @@ $app->get('/checkout', function()
 	//echo "<h1>G E T</h1><br><br>";
 
 	$address = new Address();
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
 
 	$user = User::getFromSession();
 	
@@ -50,7 +50,7 @@ $app->post('/checkout', function()
 	$user = new User();
 	$user = User::getFromSession();
 
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
 
 	$_POST["idperson"] = $user->getidperson();
 

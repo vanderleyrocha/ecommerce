@@ -269,6 +269,16 @@ class User extends Model {
 		);
 	}
 
+	
+	public static function LoginExists($login)
+	{
+		$sql = new Sql();
+		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", array(
+			":deslogin"=>$login));
+
+		return (count($results) > 0);
+	}
+
 	public function setPassword($password)
 	{
 		$sql = new Sql();
@@ -282,6 +292,14 @@ class User extends Model {
 			)
 		);
 	}
+
+
+
+	public static function getPasswordHash($password)
+	{
+		return password_hash($password, PASSWORD_DEFAULT, ["cost"=>12]);
+	}
+
 
 
 	// Manipulação das mensagens de sucesso
@@ -342,22 +360,6 @@ class User extends Model {
 	public static function clearErrorRegister()
 	{
 		$_SESSION[User::ERROR_REGISTER] =  NULL;
-	}
-
-
-	public static function LoginExists($login)
-	{
-		$sql = new Sql();
-		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", array(
-			":deslogin"=>$login));
-
-		return (count($results) > 0);
-	}
-
-
-	public static function getPasswordHash($password)
-	{
-		return password_hash($password, PASSWORD_DEFAULT, ["cost"=>12]);
 	}
 
 

@@ -22,7 +22,7 @@ function getUserName()
 
 function getCartTotals($field)
 {
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
 	$totals = $cart->getProductsTotals();
 	return $totals[$field];
 }

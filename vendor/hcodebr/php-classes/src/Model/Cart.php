@@ -11,60 +11,75 @@ class Cart extends Model
 	const SESSION_ERROR = "CartError";
 
 
-	public static function getFromSession()
+	public static function getCart()
 	{
-		//echo "SESSION:<br>";
-		//print_r($_SESSION[Cart::SESSION]);
-		//echo "<br><br><br>";
 		$hasCart = false;
 		$cart = new Cart();
-		if (isset($_SESSION[Cart::SESSION]) && ((int)$_SESSION[Cart::SESSION]["idcart"] > 0))
+		if (User::checkLogin(false))
 		{
-			$hasCart = $cart->get((int)$_SESSION[Cart::SESSION]["idcart"]);
-			if (!$hasCart)
-			{
-				if (checkLogin(false))
-				{
-					$hasCart = $cart->get((int)$_SESSION[User::SESSION]["iduser"]);
-				}
-			} 
-		} 
-
-		if (!$hasCart) 
-		{
-			$hasCart = $cart->getFromSessionID();
-
-			if (!$hasCart)
-			{
-				$data["dessessionid"] = session_id();
-				if (User::checkLogin(false)) 
-				{
-					$user = User::getFromSession();
-					$data["iduser"] = $user->getiduser();
-				}
-				$cart->setData($data);
-				$cart->save();
-				$cart->setToSession();
-			}
+			$hasCart = $cart->getFromUserId((int)$_SESSION[User::SESSION]["iduser"]);
+			$cart->setFonte("SESSION - UserId");
+		} else {
+			$hasCart = $cart->getFromSession();
+			$cart->setFonte("SESSION");
 		}
-		//echo "Cart SessionID + User:<br>";
+		if (!$hasCart)
+		{
+			$cart-setdessessionid(session_id());
+			$cart->setFonte("Novo");
+		}
+		$cart->save();
+		$cart->setToSession();
+		
 		//var_dump($cart);
-		//echo "<br><br><br>";
 		//exit;
+
 		return $cart;
 	}
 
 
-	public function setToSession()
+	private function getFromSession()
+	{
+		if (isset($_SESSION[Cart::SESSION]) && ((int)$_SESSION[Cart::SESSION]["idcart"] > 0))
+		{
+			$this->setData($_SESSION[Cart::SESSION]);
+		}
+		else
+		{
+			Cart::getFromSessionID();
+		}
+		
+		return ((int)$this->getidcart() > 0);
+	}
+
+
+	private function setToSession()
 	{
 		$_SESSION[Cart::SESSION] = $this->getValues();
 	}
 
-	public function getFromSessionID()
+	private static function getFromSessionID()
 	{
 		$sql = new Sql();
 		$results = $sql->select("SELECT * FROM tb_carts WHERE dessessionid = :dessessionid",
 			array(":dessessionid"=>session_id())
+		);
+
+		if (count($results) > 0)
+		{
+			$this->setData($results[0]);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
+	private function getFromUserId($userId)
+	{
+		$sql = new Sql();
+		$results = $sql->select("SELECT * FROM tb_carts WHERE iduser = :iduser",
+			array(":iduser"=>$userId)
 		);
 
 		if (count($results) > 0)
@@ -107,10 +122,11 @@ class Cart extends Model
 				":nrdays"=>$this->getnrdays()
 			)
 		);
-		//echo "Save cart:<br>";
-		//var_dump($results[0]);
-		//exit;
-		$this->setData($results[0]);
+
+		if (count($results) > 0)
+		{
+			$this->setData($results[0]);
+		}
 	}
 
 	public function addProduct(Product $product)

@@ -9,7 +9,8 @@ use \Hcode\Model\Address;
 
 
 $app->get('/', function() 
-{   
+{ 
+	//var_dump($_SESSION); exit;
 	$products = Product::listAll();
 	$page = new Page();
 	$page->setTpl("index", ["products"=>Product::checkList($products)]);
@@ -60,7 +61,9 @@ $app->get('/product/:desurl', function($desurl)
 $app->get('/cart', function() 
 {  
 	//echo "<h1>G E T cart</h1><br><br>";
-	$cart = Cart::getFromSession(); 
+	$cart = Cart::getCart(); 
+
+	//var_dump($cart); exit;
 
 	$page = new Page();
 	$page->setTpl("cart", [
@@ -74,7 +77,7 @@ $app->get('/cart', function()
 $app->post('/cart/freight', function() 
 {
 	//echo "<h1>P O S T frete</h1><br><br>";
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
 	$cart->setFreight($_POST["deszipcode"]);
 	header("Location: /cart");
 	exit;
@@ -86,7 +89,12 @@ $app->get('/cart/:idproduct/add', function($idproduct)
 	//echo "<h1>G E T add produto</h1><br><br>";  
 	$product = new Product();
 	$product->get((int)$idproduct);
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
+	//echo "<h2>Produto</h2><br><br>";  
+	//var_dump($product);
+	//echo "<h2>Carrinho</h2><br><br>"; 
+	//var_dump($cart);
+	//exit;
 	$qtd = (isset($_GET["qtd"])) ? (int)$_GET["qtd"] : 1;
 
 	for ($i=0; $i < $qtd; $i++) { 
@@ -103,7 +111,7 @@ $app->get('/cart/:product/minus', function($idproduct)
 	//echo "<h1>G E T remove 1 produto</h1><br><br>";     
 	$product = new Product();
 	$product->get((int)$idproduct);
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
 	$cart->removeProduct($product);
 
 	header("Location: /cart");
@@ -116,7 +124,7 @@ $app->get('/cart/:product/remove', function($idproduct)
 	//echo "<h1>G E T remove todos os produto</h1><br><br>";   
 	$product = new Product();
 	$product->get((int)$idproduct);
-	$cart = Cart::getFromSession();
+	$cart = Cart::getCart();
 	$cart->removeProduct($product, true);
 
 	header("Location: /cart");
@@ -322,7 +330,55 @@ $app->post('/profile', function()
 	exit;
 });
 
-//Fim das rotas do Profile de usuário
+
+$app->get('/profile/change-password', function() 
+{ 
+	User::verifyLogin(false);
+	$page = new Page();
+	$page->setTpl("profile-change-password", [
+		"changePassSuccess"=>User::getMsgSuccess(),
+		"changePassError"=>User::getMsgError()
+	]);
+});
+
+$app->post('/profile/change-password', function() 
+{ 
+	User::verifyLogin(false);
+
+	$user = User::getFromSession();
+
+	$hasError = false;
+	/*
+	echo "<br>Dados da senha:<br>";
+	echo "<br>Senha atual: " . $user->getdespassword();
+	echo "<br>Nova senha: " . $_POST["new_pass"];
+	*/
+	if (!password_verify($_POST["current_pass"], $user->getdespassword()) === true)
+	{
+		User::setMsgError("Senha atual não confere");
+		$hasError = true;	
+	}
+	if ($_POST["new_pass"] != $_POST["new_pass_confirm"])
+	{
+		User::setMsgError("Nova senha não confirmada");
+		$hasError = true;	
+	}
+		if (!isset($_POST["new_pass"]) || $_POST["new_pass"] === "")
+	{
+		User::setMsgError("Digite a nova senha");
+		$hasError = true;	
+	}
+	if ($hasError)
+	{
+		header("Location: /profile/change-password");
+	} else {
+		$user->setPassword(User::getPasswordHash($_POST["new_pass"]));
+		User::setMsgSuccess("Senha alterada com sucesso");
+		header("Location: /profile");
+	}
+	exit;
+});
+//Fim das rotas do Profile de usuário	profileMsg
 
 
 ?>
