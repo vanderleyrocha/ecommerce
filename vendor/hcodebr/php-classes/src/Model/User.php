@@ -302,6 +302,34 @@ class User extends Model {
 
 
 
+	public static function getPage($page = 1, $search = "", $itensPerPage = 10)
+	{
+		$start = ($page - 1) * $itensPerPage;
+		$sql = new Sql();
+		$query = "SELECT SQL_CALC_FOUND_ROWS * 
+			FROM tb_users a 
+			INNER JOIN tb_persons b USING(idperson) ";
+		if ($search != "")
+		{
+			$query .= "WHERE (b.desperson like '%$search%') 
+						or  (b.desemail like '%$search%') 
+						or (a.deslogin = '$search') ";
+		} 
+		$query .= "ORDER BY b.desperson LIMIT $start, $itensPerPage ";
+
+		$results = $sql->select($query);
+
+		$resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal");
+
+		return ["data"=>$results,
+			"total"=>(int)$resultTotal[0]["nrtotal"],
+			"pages"=>ceil($resultTotal[0]["nrtotal"] / $itensPerPage)
+		];
+			
+	}
+
+
+
 	// Manipulação das mensagens de sucesso
 	public static function setMsgSuccess($msg)
 	{
