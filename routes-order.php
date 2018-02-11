@@ -22,9 +22,10 @@ $app->get('/checkout', function()
 	
 	if (!$address->get($user->getidperson()))
 	{
-		//echo "<h2>Buscando endereço pelo CEP</h2><br><br>";
+		//echo "<h2>Endereço não localizado no banco de dados</h2><br><br>";
 		if (isset($_GET["deszipcode"]))
 		{
+			//echo "<h2>Buscando endereço pelo CEP</h2><br><br>";
 			$address->loadFromCEP($_GET["deszipcode"]);
 			$cart->setdeszipcode($_GET["deszipcode"]);
 			$cart->save();
@@ -32,6 +33,8 @@ $app->get('/checkout', function()
 		}
 			
 	}
+
+	//var_dump($address); exit;
 
 	$page = new Page();
 	$page->setTpl("checkout", [

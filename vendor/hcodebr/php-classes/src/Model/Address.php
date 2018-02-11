@@ -12,9 +12,10 @@ class Address extends Model
 	public static function getModel($optional = false)
 	{
 		$model = array(
-			"fields"=>array("desaddress", "descomplement", "descity", "desstate", "descountry", "deszipcode", "desdistrict"),
+			"fields"=>array("desaddress", "desnumber", "descomplement", "descity", "desstate", "descountry", "deszipcode", "desdistrict"),
 			"msgError"=>array(
 				"desaddress"=>"Digite o nome do logradouro",
+				"desnumber"=>"Digite o número da casa",
 				"descomplement"=>"Digite os dados complementares do endereço",
 				"descity"=>"Digite o nome da cidade",
 				"desstate"=>"Digite o nome do estado",
@@ -44,6 +45,7 @@ class Address extends Model
 		if (isset($data["logradouro"]) && $data["logradouro"])
 		{
 			$this->setdesaddress($data["logradouro"]);
+			$this->setdesnumber("");
 			$this->setdescomplement($data["complemento"]);
 			$this->setdesdistrict($data["bairro"]);
 			$this->setdescity($data["localidade"]);
@@ -75,11 +77,12 @@ class Address extends Model
 
 		$results = $sql->select("
 			CALL sp_addresses_save
-			(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)
+			(:idaddress, :idperson, :desaddress, :desnumber, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)
 			", array(
 			":idaddress"=>$this->getidaddress(),
 			":idperson"=>$this->getidperson(),
 			":desaddress"=>utf8_decode($this->getdesaddress()),
+			":desnumber"=>$this->getdesnumber(),
 			":descomplement"=>utf8_decode($this->getdescomplement()),
 			":descity"=>utf8_decode($this->getdescity()),
 			":desstate"=>utf8_decode($this->getdesstate()),
